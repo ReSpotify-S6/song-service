@@ -1,4 +1,7 @@
 using Microsoft.AspNetCore.Mvc.Testing;
+using Moq;
+using SongService.Entity;
+using SongService.Repository;
 
 namespace SongService.Tests;
 

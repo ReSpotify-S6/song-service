@@ -10,9 +10,9 @@ public class SongContext : DbContext
 
     public string? ConnectionString { get; }
 
-    public SongContext(IConfiguration configuration) 
+    public SongContext(IConfiguration configuration)
     {
-        ConnectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING") 
+        ConnectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING")
             ?? configuration.GetConnectionString("DefaultConnection");
     }
 

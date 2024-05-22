@@ -1,4 +1,5 @@
-using SongService.DependencyInjection;
+using SongService.Repository;
+using SongService.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors(options =>
@@ -17,7 +18,9 @@ builder.Services.AddCors(options =>
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.RegisterServices();
+builder.Services.AddScoped<ISongService, SongService.Services.SongService>();
+builder.Services.AddScoped<ISongRepository, SongRepository>();
+builder.Services.AddDbContext<SongContext>();
 
 var app = builder.Build();
 

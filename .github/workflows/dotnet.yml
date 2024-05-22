@@ -24,5 +24,9 @@ jobs:
       run: dotnet restore
     - name: Build
       run: dotnet build --no-restore
+    - name: Setup testing database
+      run: docker run -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres
+    - name: Run migrations
+      run: dotnet ef database update
     - name: Test
       run: dotnet test --no-build --verbosity normal

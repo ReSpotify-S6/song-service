@@ -1,10 +1,8 @@
-﻿using SongService.DependencyInjection;
-using SongService.Entity;
+﻿using SongService.Entity;
 using SongService.Repository;
 
 namespace SongService.Services;
 
-[TransientService]
 public class SongService(ISongRepository repository) : ISongService
 {
     private readonly ISongRepository _repository = repository;

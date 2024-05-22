@@ -1,12 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using SongService.Controller;
-using SongService.DependencyInjection;
 using SongService.Entity;
 using SongService.Services;
 
 namespace SongService.Controllers;
 
-[SingletonService]
 [ApiController]
 [Route("songs")] 
 public class SongController(ISongService songService) : ControllerBase
