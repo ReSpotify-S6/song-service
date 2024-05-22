@@ -20,6 +20,6 @@ jobs:
         username: ${{ secrets.ACR_REGISTRY_USERNAME }}
         password: ${{ secrets.ACR_REGISTRY_PASSWORD }}
     - name: build image
-      run: docker build . -t respotify.azurecr.io/song-service
+      run: docker build SongService/ -t respotify.azurecr.io/song-service
     - name: deploy
       run: docker push respotify.azurecr.io/song-service
