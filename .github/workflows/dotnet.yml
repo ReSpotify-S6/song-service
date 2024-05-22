@@ -29,6 +29,6 @@ jobs:
     - name: Setup Entity Framework tool
       run: dotnet tool install --global dotnet-ef
     - name: Run migrations
-      run: dotnet ef database update
+      run: dotnet ef database update --project SongService
     - name: Test
       run: dotnet test --no-build --verbosity normal
