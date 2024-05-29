@@ -2,15 +2,22 @@ using SongService.Repository;
 using SongService.Services;
 var builder = WebApplication.CreateBuilder(args);
 
+string[] allowedOrigins = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS")?.Split(',') ?? ["localhost"];
+
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(
         name: "frontend",
         policy => {
-            policy.WithOrigins("http://respotify.com")
-                  .WithOrigins("http://localhost")
-                  .AllowAnyHeader()
-                  .AllowAnyMethod();
+            foreach (string origin in allowedOrigins)
+            {
+                policy.WithOrigins(origin)
+                      .AllowAnyHeader()
+                      .AllowAnyMethod();
+            }
         });
 });
 

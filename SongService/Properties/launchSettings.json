@@ -4,24 +4,27 @@
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "DB_HOST": "localhost",
+        "DB_PORT": "5432",
+        "DB_USERNAME": "postgres",
+        "DB_PASSWORD": "postgres",
+        "DB_DATABASE": "postgres"
       },
       "dotnetRunMessages": true,
       "applicationUrl": "http://localhost:5083"
-    },
-    "IIS Express": {
-      "commandName": "IISExpress",
-      "launchBrowser": true,
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      }
     },
     "Container (Dockerfile)": {
       "commandName": "Docker",
       "launchBrowser": true,
       "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
       "environmentVariables": {
-        "ASPNETCORE_HTTP_PORTS": "8080"
+        "ASPNETCORE_HTTP_PORTS": "8080",
+        "DB_HOST": "localhost",
+        "DB_PORT": "5432",
+        "DB_USERNAME": "postgres",
+        "DB_PASSWORD": "postgres",
+        "DB_DATABASE": "postgres"
       },
       "publishAllPorts": true
     }
