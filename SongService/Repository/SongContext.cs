@@ -34,7 +34,6 @@ public class SongContext : DbContext
 
             builder.Add(envVar[3..], value);
         }
-        logger.LogInformation(builder.ConnectionString);
         ConnectionString = builder.ConnectionString;
     }
 

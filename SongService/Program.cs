@@ -3,6 +3,7 @@ using SongService.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 string[] allowedOrigins = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS")?.Split(',') ?? ["localhost"];
+string corsPolicy = "frontend";
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
@@ -10,14 +11,11 @@ builder.Logging.AddConsole();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(
-        name: "frontend",
+        name: corsPolicy,
         policy => {
-            foreach (string origin in allowedOrigins)
-            {
-                policy.WithOrigins(origin)
+            policy.WithOrigins(allowedOrigins)
                       .AllowAnyHeader()
                       .AllowAnyMethod();
-            }
         });
 });
 
@@ -38,7 +36,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCors("frontend");
+app.UseCors(corsPolicy);
 
 app.UseAuthorization();
 
