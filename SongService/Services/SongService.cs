@@ -1,4 +1,5 @@
-﻿using SongService.Entity;
+﻿using FluentValidation.Results;
+using SongService.Entity;
 using SongService.Repository;
 
 namespace SongService.Services;
@@ -17,12 +18,15 @@ public class SongService(ISongRepository repository) : ISongService
         return _repository.Single(id);
     }
 
-    public void Save(Song song)
+    public ValidationResult Save(Song song)
     {
         var validator = new SongValidator();
         var validationResult = validator.Validate(song);
 
-        _repository.Save(song);
+        if (validationResult.IsValid)
+            _repository.Save(song);
+        
+        return validationResult;
     }
 
     public void Delete(Guid id)

@@ -7,7 +7,7 @@ public interface ISongService
 
     public Song? Single(Guid id);
 
-    public void Save(Song song);
+    public IEnumerable<string> Save(Song song);
 
     public void Delete(Guid id);
 }

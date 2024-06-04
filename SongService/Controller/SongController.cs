@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using SongService.Entity;
 using SongService.Services;
 
@@ -41,9 +42,12 @@ public class SongController(ISongService songService) : ControllerBase
 
         var song = new Song(request.Title!, request.Artist!, request.ImageLink!, request.AudioLink!);
 
-        _songService.Save(song);
+        var validationResult = _songService.Save(song);
 
-        return Ok();
+        if (validationResult.IsValid)
+            return Ok();
+        else
+            return BadRequest(validationResult.Errors);
     }
 
     [HttpPut("{id}")]
