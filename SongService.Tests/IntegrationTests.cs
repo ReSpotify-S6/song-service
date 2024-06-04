@@ -5,15 +5,10 @@ using SongService.Repository;
 
 namespace SongService.Tests;
 
-public class IntegrationTests
-    : IClassFixture<WebApplicationFactory<Program>>
+public class IntegrationTests(WebApplicationFactory<Program> factory)
+        : IClassFixture<WebApplicationFactory<Program>>
 {
-    private readonly WebApplicationFactory<Program> _factory;
-
-    public IntegrationTests(WebApplicationFactory<Program> factory)
-    {
-        _factory = factory;
-    }
+    private readonly WebApplicationFactory<Program> _factory = factory;
 
     [Theory]
     [InlineData("/songs")]

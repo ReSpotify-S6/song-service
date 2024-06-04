@@ -1,6 +1,6 @@
 ﻿using System.Buffers.Text;
 
-namespace SongService.Controllers;
+namespace SongService.Controller;
 
 public class SongRequest
 {

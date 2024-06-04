@@ -1,5 +1,7 @@
+using SongService;
 using SongService.Repository;
 using SongService.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 string[] allowedOrigins = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS")?.Split(',') ?? ["localhost"];
@@ -19,12 +21,17 @@ builder.Services.AddCors(options =>
         });
 });
 
+
+
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
 builder.Services.AddScoped<ISongService, SongService.Services.SongService>();
 builder.Services.AddScoped<ISongRepository, SongRepository>();
+builder.Services.AddSingleton<IKeycloakJwtHandler, KeycloakJwtHandler>();
+
 builder.Services.AddDbContext<SongContext>();
 
 var app = builder.Build();
@@ -37,6 +44,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors(corsPolicy);
+app.UseMiddleware<AuthMiddleware>();
+
 
 app.UseAuthorization();
 

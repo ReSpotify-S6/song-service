@@ -9,7 +9,7 @@
         "DB_PORT": "5432",
         "DB_USERNAME": "postgres",
         "DB_PASSWORD": "postgres",
-        "DB_DATABASE": "postgres"
+        "DB_DATABASE": "postgres",
       },
       "dotnetRunMessages": true,
       "applicationUrl": "http://localhost:5083"

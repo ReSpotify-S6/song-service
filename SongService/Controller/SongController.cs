@@ -1,33 +1,35 @@
 using Microsoft.AspNetCore.Mvc;
-using SongService.Controller;
 using SongService.Entity;
 using SongService.Services;
 
-namespace SongService.Controllers;
+namespace SongService.Controller;
 
 [ApiController]
-[Route("songs")] 
+[Route("songs")]
 public class SongController(ISongService songService) : ControllerBase
 {
     private readonly ISongService _songService = songService;
 
     [HttpGet]
+    [Allow("user")]
     public IActionResult List()
     {
         return Ok(_songService.List());
     }
 
     [HttpGet("{id}")]
+    [Allow("user")]
     public IActionResult Single(Guid id)
     {
         var song = _songService.Single(id);
 
-        return song is not null 
-            ? Ok(song) 
+        return song is not null
+            ? Ok(song)
             : NotFound(string.Empty);
     }
 
     [HttpPost]
+    [Allow("administrator")]
     public IActionResult Create([FromBody] SongRequest request)
     {
         var validator = new SongRequestValidator();
@@ -45,6 +47,7 @@ public class SongController(ISongService songService) : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Allow("administrator")]
     public IActionResult Update(Guid id, [FromBody] SongRequest request)
     {
         var validator = new SongRequestValidator();
@@ -64,6 +67,7 @@ public class SongController(ISongService songService) : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Allow("administrator")]
     public IActionResult Delete(Guid id)
     {
         _songService.Delete(id);
