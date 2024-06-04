@@ -1,5 +1,5 @@
-﻿using SongService.Entity;
-
+﻿using FluentValidation.Results;
+using SongService.Entity;
 namespace SongService.Services;
 public interface ISongService
 {
@@ -7,7 +7,7 @@ public interface ISongService
 
     public Song? Single(Guid id);
 
-    public IEnumerable<string> Save(Song song);
+    public ValidationResult Save(Song song);
 
     public void Delete(Guid id);
 }
