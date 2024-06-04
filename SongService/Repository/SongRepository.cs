@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using SongService.Entity;
+﻿using SongService.Entity;
 
 namespace SongService.Repository;
 

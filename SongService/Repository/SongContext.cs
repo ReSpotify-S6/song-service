@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SongService.Entity;
-using System.Configuration;
 using System.Data.Common;
 
 namespace SongService.Repository;
