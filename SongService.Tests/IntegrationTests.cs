@@ -21,8 +21,6 @@ public class IntegrationTests(WebApplicationFactory<Program> factory)
         var response = await client.GetAsync(url);
 
         // Assert
-        response.EnsureSuccessStatusCode(); // Status Code 200-299
-        Assert.Equal("application/json; charset=utf-8",
-            response.Content.Headers.ContentType.ToString());
+        Assert.Equal(System.Net.HttpStatusCode.Forbidden, response.StatusCode); // Forbidden because no token is provided
     }
 }
