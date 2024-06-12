@@ -37,8 +37,22 @@ jobs:
     - name: Run tests
       run: dotnet test --no-build --verbosity normal
 
+  analyze:
+    needs: test 
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: SonarCloud Scan
+      uses: sonarsource/sonarcloud-github-action@v2.2.0
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
   deploy:
-    needs: test
+    needs: analyze
     runs-on: ubuntu-latest
     defaults:
       run:
