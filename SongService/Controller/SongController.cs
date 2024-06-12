@@ -44,10 +44,12 @@ public class SongController(ISongService songService) : ControllerBase
 
         var validationResult = _songService.Save(song);
 
+
+
         if (validationResult.IsValid)
             return Ok();
         else
-            return BadRequest(validationResult.Errors);
+            return BadRequest(validationResult.Errors.Select(e => e.ErrorMessage));
     }
 
     [HttpPut("{id}")]
@@ -65,9 +67,12 @@ public class SongController(ISongService songService) : ControllerBase
             Id = id
         };
 
-        _songService.Save(song);
+        var validationResult = _songService.Save(song);
 
-        return Ok();
+        if (validationResult.IsValid)
+            return Ok();
+        else
+            return BadRequest(validationResult.Errors.Select(e => e.ErrorMessage));
     }
 
     [HttpDelete("{id}")]
