@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using SongService.Authorization;
 using SongService.Entity;
 using SongService.Services;
 

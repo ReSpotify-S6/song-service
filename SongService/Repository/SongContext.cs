@@ -11,28 +11,17 @@ public class SongContext : DbContext
     public string? ConnectionString { get; }
 
     // Builds a connection string from environment variables
-    public SongContext(IConfiguration configuration, ILogger<SongContext> logger)
+    public SongContext(EnvironmentVariableManager envManager, ILogger<SongContext> logger)
     {
-        ConnectionString = configuration.GetConnectionString("DefaultConnection");
-
-        var builder = new DbConnectionStringBuilder();
-        var envVars = new List<string>()
+        var builder = new DbConnectionStringBuilder
         {
-            "DB_HOST", "DB_PORT", "DB_USERNAME", "DB_PASSWORD", "DB_DATABASE"
+            { "HOST", envManager["DB_HOST"] },
+            { "PORT", envManager["DB_PORT"] },
+            { "USERNAME", envManager["DB_USERNAME"] },
+            { "PASSWORD", envManager["DB_PASSWORD"] },
+            { "DATABASE", envManager["DB_DATABASE"] }
         };
-        foreach (var envVar in envVars)
-        {
-            string? value = Environment.GetEnvironmentVariable(envVar); 
 
-            if (value is null)
-            {
-                logger.LogWarning("Could not construct database connection string. Environment variable '{}' is not set.", envVar);
-                logger.LogWarning("Falling back to configuration default: '{}'", ConnectionString);
-                return;
-            }
-
-            builder.Add(envVar[3..], value);
-        }
         ConnectionString = builder.ConnectionString;
     }
 

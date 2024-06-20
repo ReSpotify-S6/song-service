@@ -3,11 +3,11 @@ using System.Text.Json;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 
-namespace SongService;
+namespace SongService.Authorization;
 
-public class KeycloakJwtHandler : IKeycloakJwtHandler
+public class KeycloakJwtHandler(EnvironmentVariableManager envManager) : IKeycloakJwtHandler
 {
-    private TokenValidationParameters _tokenValidationParameters = new TokenValidationParameters
+    private TokenValidationParameters _tokenValidationParameters = new()
     {
         ValidateIssuerSigningKey = true,
         ValidateIssuer = false,
@@ -38,15 +38,14 @@ public class KeycloakJwtHandler : IKeycloakJwtHandler
     {
         var handler = new HttpClientHandler();
         var httpClient = new HttpClient(handler);
-        var jwksUrl = Environment.GetEnvironmentVariable("KC_JWKS_URL")
-            ?? throw new ArgumentNullException("KC_JWKS_URL");
+        var jwksUrl = envManager["KC_JWKS_URL"];
 
         var response = await httpClient.GetAsync(jwksUrl);
         response.EnsureSuccessStatusCode();
         var jwksJson = await response.Content.ReadAsStringAsync();
 
         // Parse JWKS
-        var jwks = JsonSerializer.Deserialize<Jwks>(jwksJson) 
+        var jwks = JsonSerializer.Deserialize<Jwks>(jwksJson)
             ?? throw new JsonException($"Could not deserialize json: {jwksJson}");
 
         return jwks.keys.Select(k => new X509SecurityKey(new X509Certificate2(Convert.FromBase64String(k.x5c.First()))));
@@ -56,7 +55,6 @@ public class KeycloakJwtHandler : IKeycloakJwtHandler
     {
         public List<string> roles { get; set; } = [];
     }
-
 
     private class Jwks
     {

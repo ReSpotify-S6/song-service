@@ -1,7 +1,7 @@
 ﻿using Microsoft.IdentityModel.JsonWebTokens;
 using System.Net;
 
-namespace SongService;
+namespace SongService.Authorization;
 
 public class AuthMiddleware(RequestDelegate next, IKeycloakJwtHandler keycloakJwtHandler)
 {

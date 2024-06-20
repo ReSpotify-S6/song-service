@@ -1,6 +1,6 @@
 ﻿using Microsoft.IdentityModel.JsonWebTokens;
 
-namespace SongService;
+namespace SongService.Authorization;
 
 public interface IKeycloakJwtHandler
 {
