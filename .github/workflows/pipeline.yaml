@@ -8,6 +8,7 @@ on:
 
 jobs:
   test:
+    name: Test solution
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
@@ -37,7 +38,7 @@ jobs:
       run: dotnet test --no-build --verbosity normal
 
   analyze:
-    needs: test 
+    name: Static code analysis
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
@@ -51,6 +52,7 @@ jobs:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         
   vulnerability-scan:
+    name: Vulnerability scan
     runs-on: ubuntu-latest
     needs: analyze
     steps:
@@ -75,7 +77,8 @@ jobs:
           path: snyk-output.json
   
   deploy:
-    needs: vulnerability-scan
+    name: Deployment
+    needs: [test, analyze, vulnerability-scan]
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -98,6 +101,7 @@ jobs:
       run: docker push respotify.azurecr.io/song-service
 
   update-service:
+    name: Restart service
     needs: deploy
     runs-on: ubuntu-latest
     steps:
