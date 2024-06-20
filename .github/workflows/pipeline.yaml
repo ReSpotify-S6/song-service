@@ -53,7 +53,7 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          args: --file=SongService/SongService.csproj
+          args: --file=SongService/SongService.csproj --package-manager=nuget
   
   deploy:
     name: Deployment
