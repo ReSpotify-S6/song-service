@@ -5,7 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace SongService.Authorization;
 
-public class KeycloakJwtHandler(EnvironmentVariableManager envManager) : IKeycloakJwtHandler
+public class KeycloakJwtHandler(IReadOnlyDictionary<string, string> envStore) : IKeycloakJwtHandler
 {
     private TokenValidationParameters _tokenValidationParameters = new()
     {
@@ -38,7 +38,7 @@ public class KeycloakJwtHandler(EnvironmentVariableManager envManager) : IKeyclo
     {
         var handler = new HttpClientHandler();
         var httpClient = new HttpClient(handler);
-        var jwksUrl = envManager["KC_JWKS_URL"];
+        var jwksUrl = envStore["KC_JWKS_URL"];
 
         var response = await httpClient.GetAsync(jwksUrl);
         response.EnsureSuccessStatusCode();

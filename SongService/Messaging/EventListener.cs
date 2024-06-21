@@ -8,13 +8,13 @@ public class EventListener : IDisposable, IEventListener
 {
     private readonly IConnection _connection;
 
-    private readonly EnvironmentVariableManager _envManager;
+    private readonly IReadOnlyDictionary<string, string> _envStore;
 
-    public EventListener(EnvironmentVariableManager envManager)
+    public EventListener(IReadOnlyDictionary<string, string> envStore)
     {
-        var hostname = envManager["RABBITMQ_HOSTNAME"];
-        var username = envManager["RABBITMQ_USERNAME"];
-        var password = envManager["RABBITMQ_PASSWORD"];
+        var hostname = envStore["RABBITMQ_HOSTNAME"];
+        var username = envStore["RABBITMQ_USERNAME"];
+        var password = envStore["RABBITMQ_PASSWORD"];
 
         var factory = new ConnectionFactory
         {
@@ -24,7 +24,7 @@ public class EventListener : IDisposable, IEventListener
         };
 
         _connection = factory.CreateConnection();
-        _envManager = envManager;
+        _envStore = envStore;
     }
     /*
     public void Subscribe<T>(string topic, Action<T> handler)

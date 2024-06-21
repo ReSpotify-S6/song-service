@@ -4,7 +4,7 @@ using SongService.Repository;
 
 namespace SongService.Services;
 
-public class SongService(ISongRepository repository, EnvironmentVariableManager envManager) : ISongService
+public class SongService(ISongRepository repository, IReadOnlyDictionary<string, string> envStore) : ISongService
 {
     private readonly ISongRepository _repository = repository;
 
@@ -20,7 +20,7 @@ public class SongService(ISongRepository repository, EnvironmentVariableManager 
 
     public ValidationResult Save(Song song)
     {
-        var validator = new SongValidator(prefixUri: envManager["API_GATEWAY_HOST"]);
+        var validator = new SongValidator(prefixUri: envStore["API_GATEWAY_HOST"]);
         var validationResult = validator.Validate(song);
 
         if (validationResult.IsValid)

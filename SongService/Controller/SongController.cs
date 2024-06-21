@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
 using SongService.Authorization;
 using SongService.Entity;
 using SongService.Services;
@@ -10,20 +9,19 @@ namespace SongService.Controller;
 [Route("songs")]
 public class SongController(ISongService songService) : ControllerBase
 {
-    private readonly ISongService _songService = songService;
 
     [HttpGet]
     [Allow("user")]
     public IActionResult List()
     {
-        return Ok(_songService.List());
+        return Ok(songService.List());
     }
 
     [HttpGet("{id}")]
     [Allow("user")]
     public IActionResult Single(Guid id)
     {
-        var song = _songService.Single(id);
+        var song = songService.Single(id);
 
         return song is not null
             ? Ok(song)
@@ -43,7 +41,7 @@ public class SongController(ISongService songService) : ControllerBase
 
         var song = new Song(request.Title!, request.Artist!, request.ImageLink!, request.AudioLink!);
 
-        var validationResult = _songService.Save(song);
+        var validationResult = songService.Save(song);
 
 
 
@@ -68,7 +66,7 @@ public class SongController(ISongService songService) : ControllerBase
             Id = id
         };
 
-        var validationResult = _songService.Save(song);
+        var validationResult = songService.Save(song);
 
         if (validationResult.IsValid)
             return Ok();
@@ -80,7 +78,7 @@ public class SongController(ISongService songService) : ControllerBase
     [Allow("administrator")]
     public IActionResult Delete(Guid id)
     {
-        _songService.Delete(id);
+        songService.Delete(id);
 
         return NoContent();
     }

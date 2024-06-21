@@ -22,6 +22,8 @@ var requiredVariables = new List<string>
     "API_GATEWAY_HOST",
 };
 
+var envStore = new EnvStore(requiredVariables);
+builder.Services.AddSingleton<IReadOnlyDictionary<string, string>>(envStore);
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
@@ -30,20 +32,16 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Add services to the container.
-var envManager = new EnvironmentVariableManager(requiredVariables);
-builder.Services.AddSingleton(envManager);
-
 builder.Services.AddSingleton<ISongService, SongService.Services.SongService>();
-builder.Services.AddSingleton<ISongRepository, SongRepository>();
+builder.Services.AddScoped<ISongRepository, SongRepository>();
 builder.Services.AddSingleton<IKeycloakJwtHandler, KeycloakJwtHandler>();
 
 builder.Services.AddDbContext<SongContext>();
 
-
-
-string[] allowedOrigins = envManager["ALLOWED_ORIGINS"].Split(',');
+// CORS
 string corsPolicy = "frontend";
+
+string[] allowedOrigins = envStore["ALLOWED_ORIGINS"].Split(',');
 
 builder.Services.AddCors(options =>
 {
@@ -51,8 +49,8 @@ builder.Services.AddCors(options =>
         name: corsPolicy,
         policy => {
             policy.WithOrigins(allowedOrigins)
-                      .AllowAnyHeader()
-                      .AllowAnyMethod();
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
         });
 });
 
@@ -68,12 +66,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors(corsPolicy);
 app.UseMiddleware<AuthMiddleware>();
-
-
 app.UseAuthorization();
+
 
 app.MapControllers();
 
 app.Run();
-
-public partial class Program { } // For tests
