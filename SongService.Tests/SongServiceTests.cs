@@ -1,90 +1,156 @@
-﻿using Moq;
+﻿using Microsoft.EntityFrameworkCore;
 using SongService.Entity;
 using SongService.Repository;
+using SongService.Services;
 
 public class SongServiceTests
 {
-    private readonly Mock<ISongRepository> _mockRepository;
-    private readonly Dictionary<string, string> _mockEnvVariables;
-    private readonly SongService.Services.SongService _service;
-    private readonly string _mockApiGatewayHost = "https://mockapi.com";
+    private static readonly string _mockApiGatewayHost = "https://mockapi.com";
 
-    public SongServiceTests()
+    private static readonly Dictionary<string, string> _mockEnvStore = new()
     {
-        _mockRepository = new Mock<ISongRepository>();
-        _mockEnvVariables = new Dictionary<string, string>
-        {
-            { "API_GATEWAY_HOST", _mockApiGatewayHost }
-        };
+        { "API_GATEWAY_HOST", _mockApiGatewayHost }
+    };
 
+    private static SongContext CreateNewContext() => new(
+        new DbContextOptionsBuilder<SongContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options);
 
-        _service = new SongService.Services.SongService(_mockRepository.Object, _mockEnvVariables);
+    private static ISongService CreateNewService(SongContext context) => new SongService.Services.SongService(context, _mockEnvStore);
+
+    [Fact]
+    public void List_ReturnsAllSongs()
+    {
+        // Arrange
+        var context = CreateNewContext();
+        var service = CreateNewService(context);
+        var song1 = new Song("Title1", "Artist1", $"{_mockApiGatewayHost}/images/img1.jpg", $"{_mockApiGatewayHost}/audio/audio1.mp3");
+        var song2 = new Song("Title2", "Artist2", $"{_mockApiGatewayHost}/images/img2.jpg", $"{_mockApiGatewayHost}/audio/audio2.mp3");
+        context.Songs.Add(song1);
+        context.Songs.Add(song2);
+        context.SaveChanges();
+
+        // Act
+        var result = service.List();
+
+        // Assert
+        Assert.Equal(2, result.Length);
+        Assert.Contains(result, s => s.Title == "Title1");
+        Assert.Contains(result, s => s.Title == "Title2");
     }
 
     [Fact]
-    public void List_ShouldReturnAllSongs()
+    public void Single_ReturnsCorrectSong()
     {
-        var songs = new[]
-        {
-            new Song("Song 1", "Artist 1", $"{_mockApiGatewayHost}/images/img1.jpg", $"{_mockApiGatewayHost}/audio/audio1.mp3"),
-            new Song("Song 2", "Artist 2", $"{_mockApiGatewayHost}/images/img2.jpg", $"{_mockApiGatewayHost}/audio/audio2.mp3")
-        };
+        // Arrange
+        var context = CreateNewContext();
+        var service = CreateNewService(context);
+        var song = new Song("Title1", "Artist1", $"{_mockApiGatewayHost}/images/img1.jpg", $"{_mockApiGatewayHost}/audio/audio1.mp3");
+        context.Songs.Add(song);
+        context.SaveChanges();
 
-        _mockRepository.Setup(repo => repo.List()).Returns(songs);
+        // Act
+        var result = service.Single(song.Id);
 
-        var result = _service.List();
-
-        Assert.Equal(songs, result);
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(song.Title, result.Title);
     }
 
     [Fact]
-    public void Single_ShouldReturnSongById()
+    public void Save_ValidSong_SavesSuccessfully()
     {
-        var songId = Guid.NewGuid();
-        var song = new Song("Song 1", "Artist 1", $"{_mockApiGatewayHost}/images/img1.jpg", $"{_mockApiGatewayHost}/audio/audio1.mp3") { Id = songId };
+        // Arrange
+        var context = CreateNewContext();
+        var service = CreateNewService(context);
+        var song = new Song("Title1", "Artist1", $"{_mockApiGatewayHost}/images/img1.jpg", $"{_mockApiGatewayHost}/audio/audio1.mp3");
 
-        _mockRepository.Setup(repo => repo.Single(songId)).Returns(song);
+        // Act
+        var validationResult = service.Save(song);
+        var savedSong = context.Songs.Find(song.Id);
 
-        var result = _service.Single(songId);
-
-        Assert.Equal(song, result);
+        // Assert
+        Assert.True(validationResult.IsValid);
+        Assert.NotNull(savedSong);
+        Assert.Equal(song.Title, savedSong.Title);
     }
 
     [Fact]
-    public void Save_ShouldReturnValidationResultAndSaveSong_WhenValid()
+    public void Save_InvalidSong_ReturnsValidationErrors()
     {
-        var song = new Song("Song 1", "Artist 1", $"{_mockApiGatewayHost}/images/img1.jpg", $"{_mockApiGatewayHost}/audio/audio1.mp3");
+        // Arrange
+        var context = CreateNewContext();
+        var service = CreateNewService(context);
+        var song = new Song("Title1", "Artist1", "invalidlink.jpg", "invalidlink.mp3");
 
-        _mockRepository.Setup(repo => repo.Save(song));
+        // Act
+        var validationResult = service.Save(song);
 
-        var result = _service.Save(song);
-
-        Assert.True(result.IsValid);
-        _mockRepository.Verify(repo => repo.Save(song), Times.Once);
+        // Assert
+        Assert.False(validationResult.IsValid);
+        Assert.Equal(2, validationResult.Errors.Count);
     }
 
     [Fact]
-    public void Save_ShouldReturnValidationResultWithErrors_WhenInvalid()
+    public void Delete_RemovesSongSuccessfully()
     {
-        var song = new Song("", "", "https://wrongapi.com/images/img1.jpg", "https://wrongapi.com/audio/audio1.mp3");
+        // Arrange
+        var context = CreateNewContext();
+        var service = CreateNewService(context);
+        var song = new Song("Title1", "Artist1", $"{_mockApiGatewayHost}/images/img1.jpg", $"{_mockApiGatewayHost}/audio/audio1.mp3");
+        context.Songs.Add(song);
+        context.SaveChanges();
 
-        var result = _service.Save(song);
+        // Act
+        service.Delete(song.Id);
+        var deletedSong = context.Songs.Find(song.Id);
 
-        Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, e => e.PropertyName == "Title");
-        Assert.Contains(result.Errors, e => e.PropertyName == "Artist");
-        Assert.Contains(result.Errors, e => e.PropertyName == "ImageLink");
-        Assert.Contains(result.Errors, e => e.PropertyName == "AudioLink");
-        _mockRepository.Verify(repo => repo.Save(It.IsAny<Song>()), Times.Never);
+        // Assert
+        Assert.Null(deletedSong);
     }
 
     [Fact]
-    public void Delete_ShouldRemoveSongById()
+    public void OnDeletedAudio_RemovesSongsWithMatchingAudioLink()
     {
-        var songId = Guid.NewGuid();
+        // Arrange
+        var context = CreateNewContext();
+        var service = CreateNewService(context);
+        var song1 = new Song("Title1", "Artist1", $"{_mockApiGatewayHost}/images/img1.jpg", $"{_mockApiGatewayHost}/audio/audio1.mp3");
+        var song2 = new Song("Title2", "Artist2", $"{_mockApiGatewayHost}/images/img2.jpg", $"{_mockApiGatewayHost}/audio/audio1.mp3"); // Same audio link
+        var song3 = new Song("Title3", "Artist3", $"{_mockApiGatewayHost}/images/img3.jpg", $"{_mockApiGatewayHost}/audio/audio2.mp3");
+        context.Songs.AddRange(song1, song2, song3);
+        context.SaveChanges();
 
-        _service.Delete(songId);
+        // Act
+        service.OnDeletedAudio($"{_mockApiGatewayHost}/audio/audio1.mp3");
+        var remainingSongs = context.Songs.ToList();
 
-        _mockRepository.Verify(repo => repo.Delete(songId), Times.Once);
+        // Assert
+        Assert.Single(remainingSongs);
+        Assert.DoesNotContain(remainingSongs, s => s.AudioLink == $"{_mockApiGatewayHost}/audio/audio1.mp3");
+        Assert.Contains(remainingSongs, s => s.AudioLink == $"{_mockApiGatewayHost}/audio/audio2.mp3");
+    }
+
+    [Fact]
+    public void OnDeletedAudio_RemovesSongsWithMatchingImageLink()
+    {
+        // Arrange
+        var context = CreateNewContext();
+        var service = CreateNewService(context);
+        var song1 = new Song("Title1", "Artist1", $"{_mockApiGatewayHost}/images/img1.jpg", $"{_mockApiGatewayHost}/audio/audio1.mp3");
+        var song2 = new Song("Title2", "Artist2", $"{_mockApiGatewayHost}/images/img1.jpg", $"{_mockApiGatewayHost}/audio/audio2.mp3"); // Same audio link
+        var song3 = new Song("Title3", "Artist3", $"{_mockApiGatewayHost}/images/img3.jpg", $"{_mockApiGatewayHost}/audio/audio3.mp3");
+        context.Songs.AddRange(song1, song2, song3);
+        context.SaveChanges();
+
+        // Act
+        service.OnDeletedImage($"{_mockApiGatewayHost}/images/img1.jpg");
+        var remainingSongs = context.Songs.ToList();
+
+        // Assert
+        Assert.Single(remainingSongs);
+        Assert.DoesNotContain(remainingSongs, s => s.ImageLink == $"{_mockApiGatewayHost}/images/img1.jpg");
+        Assert.Contains(remainingSongs, s => s.ImageLink == $"{_mockApiGatewayHost}/images/img3.jpg");
     }
 }
