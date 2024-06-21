@@ -1,13 +1,13 @@
 ﻿using FluentValidation.Results;
 using SongService.Entity;
+
 namespace SongService.Services;
+
 public interface ISongService
 {
-    public Song[] List();
-
-    public Song? Single(Guid id);
-
-    public ValidationResult Save(Song song);
-
-    public void Delete(Guid id);
+    void Delete(Guid id);
+    Song[] List();
+    public void OnDeletedAudioOrImage(string uri);
+    ValidationResult Save(Song song);
+    Song? Single(Guid id);
 }

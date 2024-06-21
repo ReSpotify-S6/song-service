@@ -1,7 +1,10 @@
+using Microsoft.EntityFrameworkCore;
 using SongService;
 using SongService.Authorization;
+using SongService.Messaging;
 using SongService.Repository;
 using SongService.Services;
+using System.Data.Common;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,10 +36,23 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddSingleton<ISongService, SongService.Services.SongService>();
-builder.Services.AddScoped<ISongRepository, SongRepository>();
 builder.Services.AddSingleton<IKeycloakJwtHandler, KeycloakJwtHandler>();
+builder.Services.AddSingleton<IEventListener, EventListener>();
+builder.Services.AddHostedService<DeletedResourceListener>();
 
-builder.Services.AddDbContext<SongContext>();
+// Database
+var connectionString = new DbConnectionStringBuilder
+{
+    { "HOST", envStore["DB_HOST"] },
+    { "PORT", envStore["DB_PORT"] },
+    { "USERNAME", envStore["DB_USERNAME"] },
+    { "PASSWORD", envStore["DB_PASSWORD"] },
+    { "DATABASE", envStore["DB_DATABASE"] }
+};
+builder.Services.AddDbContext<SongContext>(options =>
+{
+    options.UseNpgsql(connectionString.ToString());
+});
 
 // CORS
 string corsPolicy = "frontend";

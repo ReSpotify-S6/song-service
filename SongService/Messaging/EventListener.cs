@@ -1,6 +1,9 @@
 ﻿using RabbitMQ.Client;
 using System.Text.Json;
 using System.Text;
+using RabbitMQ.Client.Events;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+using Microsoft.Extensions.Logging;
 
 namespace SongService.Messaging;
 
@@ -8,10 +11,11 @@ public class EventListener : IDisposable, IEventListener
 {
     private readonly IConnection _connection;
 
-    private readonly IReadOnlyDictionary<string, string> _envStore;
+    private readonly ILogger _logger;
 
-    public EventListener(IReadOnlyDictionary<string, string> envStore)
+    public EventListener(IReadOnlyDictionary<string, string> envStore, ILogger<EventListener> logger)
     {
+        _logger = logger;
         var hostname = envStore["RABBITMQ_HOSTNAME"];
         var username = envStore["RABBITMQ_USERNAME"];
         var password = envStore["RABBITMQ_PASSWORD"];
@@ -23,36 +27,51 @@ public class EventListener : IDisposable, IEventListener
             Password = password
         };
 
-        _connection = factory.CreateConnection();
-        _envStore = envStore;
+        while (true)
+        {
+            try
+            {
+                _connection = factory.CreateConnection();
+                break;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex.Message);
+                logger.LogInformation("Retrying to connect to RabbitMQ in 5 seconds...");
+                Thread.Sleep(5000);
+            }
+        }
     }
-    /*
+
     public void Subscribe<T>(string topic, Action<T> handler)
     {
         var channel = _connection.CreateModel();
 
-        channel.ExchangeDeclare(exchange: exchange, type: ExchangeType.Direct, durable: true, autoDelete: false);
-        channel.QueueDeclare(queue, exclusive: false, autoDelete: false);
-        channel.QueueBind(exchange: exchange, routingKey: topic, queue: queue);
-
-        channel.BasicQos(0, 1, false);
-
+        channel.QueueDeclare(
+            queue: topic,
+            durable: false,
+            exclusive: false,
+            autoDelete: false,
+            arguments: null
+        );
 
         var consumer = new EventingBasicConsumer(channel);
-
-        consumer.Received += (model, eventArgs) =>
+        consumer.Received += (model, ea) =>
         {
-            var body = eventArgs.Body.ToArray();
-            var message = Encoding.UTF8.GetString(body);
-
-            var data = JsonSerializer.Deserialize<T>(message);
-
-            handler.Invoke(data);
+            var body = ea.Body.ToArray();
+            var json = Encoding.UTF8.GetString(body);
+            var data = JsonSerializer.Deserialize<T>(json);
+            _logger.LogInformation("Received message: {}", data);
+            handler(data);
         };
 
-        channel.BasicConsume(queue: queue, autoAck: true, consumer: consumer);
+        channel.BasicConsume(
+            queue: topic,
+            autoAck: true,
+            consumer: consumer
+        );
     }
-    */
+
     public void Dispose()
     {
         GC.SuppressFinalize(this);

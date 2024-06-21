@@ -4,18 +4,16 @@ using SongService.Repository;
 
 namespace SongService.Services;
 
-public class SongService(ISongRepository repository, IReadOnlyDictionary<string, string> envStore) : ISongService
+public class SongService(SongContext context, IReadOnlyDictionary<string, string> envStore, ILogger<SongService>? logger = null) : ISongService
 {
-    private readonly ISongRepository _repository = repository;
-
     public Song[] List()
     {
-        return _repository.List();
+        return context.Songs.ToArray();
     }
 
     public Song? Single(Guid id)
     {
-        return _repository.Single(id);
+        return context.Songs.Find(id);
     }
 
     public ValidationResult Save(Song song)
@@ -24,13 +22,33 @@ public class SongService(ISongRepository repository, IReadOnlyDictionary<string,
         var validationResult = validator.Validate(song);
 
         if (validationResult.IsValid)
-            _repository.Save(song);
-        
+        {
+            context.Add(song);
+            context.SaveChanges();
+        }
+
         return validationResult;
     }
 
     public void Delete(Guid id)
     {
-        _repository.Delete(id);
+        var song = context.Songs.Find(id);
+        if (song != null)
+        {
+            context.Songs.Remove(song);
+            context.SaveChanges();
+        }
+    }
+
+    public void OnDeletedAudioOrImage(string uri)
+    {
+        var songsToRemove = context.Songs.Where(s => s.AudioLink == uri || s.ImageLink == uri);
+        if (logger is not null)
+        {
+            logger.LogInformation("Resource deleted: {}", uri);
+            logger.LogInformation("Removing song metadatas: {}", songsToRemove.Select(s => $"{s.Title} - {s.Artist}"));
+        }
+        context.Songs.RemoveRange(songsToRemove);
+        context.SaveChanges();
     }
 }
