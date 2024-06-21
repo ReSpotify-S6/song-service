@@ -111,11 +111,12 @@ public class SongServiceTests
     }
 
     [Fact]
-    public void OnDeletedAudio_RemovesSongsWithMatchingAudioLink()
+    public void OnDeletedAudioOrImage_RemovesSongsWithMatchingAudioOrImageLink()
     {
         // Arrange
         var context = CreateNewContext();
         var service = CreateNewService(context);
+
         var song1 = new Song("Title1", "Artist1", $"{_mockApiGatewayHost}/images/img1.jpg", $"{_mockApiGatewayHost}/audio/audio1.mp3");
         var song2 = new Song("Title2", "Artist2", $"{_mockApiGatewayHost}/images/img2.jpg", $"{_mockApiGatewayHost}/audio/audio1.mp3"); // Same audio link
         var song3 = new Song("Title3", "Artist3", $"{_mockApiGatewayHost}/images/img3.jpg", $"{_mockApiGatewayHost}/audio/audio2.mp3");
@@ -123,7 +124,7 @@ public class SongServiceTests
         context.SaveChanges();
 
         // Act
-        service.OnDeletedAudio($"{_mockApiGatewayHost}/audio/audio1.mp3");
+        service.OnDeletedAudioOrImage($"{_mockApiGatewayHost}/audio/audio1.mp3");
         var remainingSongs = context.Songs.ToList();
 
         // Assert
@@ -133,19 +134,20 @@ public class SongServiceTests
     }
 
     [Fact]
-    public void OnDeletedAudio_RemovesSongsWithMatchingImageLink()
+    public void OnDeletedAudioOrImage_RemovesSongsWithMatchingImageLink()
     {
         // Arrange
         var context = CreateNewContext();
         var service = CreateNewService(context);
+
         var song1 = new Song("Title1", "Artist1", $"{_mockApiGatewayHost}/images/img1.jpg", $"{_mockApiGatewayHost}/audio/audio1.mp3");
-        var song2 = new Song("Title2", "Artist2", $"{_mockApiGatewayHost}/images/img1.jpg", $"{_mockApiGatewayHost}/audio/audio2.mp3"); // Same audio link
-        var song3 = new Song("Title3", "Artist3", $"{_mockApiGatewayHost}/images/img3.jpg", $"{_mockApiGatewayHost}/audio/audio3.mp3");
+        var song2 = new Song("Title2", "Artist2", $"{_mockApiGatewayHost}/images/img1.jpg", $"{_mockApiGatewayHost}/audio/audio2.mp3"); // Same image link
+        var song3 = new Song("Title3", "Artist3", $"{_mockApiGatewayHost}/images/img3.jpg", $"{_mockApiGatewayHost}/audio/audio2.mp3");
         context.Songs.AddRange(song1, song2, song3);
         context.SaveChanges();
 
         // Act
-        service.OnDeletedImage($"{_mockApiGatewayHost}/images/img1.jpg");
+        service.OnDeletedAudioOrImage($"{_mockApiGatewayHost}/images/img1.jpg");
         var remainingSongs = context.Songs.ToList();
 
         // Assert
@@ -153,4 +155,5 @@ public class SongServiceTests
         Assert.DoesNotContain(remainingSongs, s => s.ImageLink == $"{_mockApiGatewayHost}/images/img1.jpg");
         Assert.Contains(remainingSongs, s => s.ImageLink == $"{_mockApiGatewayHost}/images/img3.jpg");
     }
+
 }
