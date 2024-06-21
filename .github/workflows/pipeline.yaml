@@ -12,7 +12,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@master
+      with:
+        fetch-depth: 0
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
@@ -21,12 +23,6 @@ jobs:
       run: dotnet restore
     - name: Build
       run: dotnet build --no-restore
-    - name: Setup testing database
-      run: docker run -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres
-    - name: Setup Entity Framework tool
-      run: dotnet tool install --global dotnet-ef
-    - name: Run migrations
-      run: dotnet ef database update --project SongService
     - name: Run tests
       run: dotnet test --no-build --verbosity normal
 
@@ -35,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@master
       with:
         fetch-depth: 0
     - name: SonarCloud Scan
@@ -47,7 +43,10 @@ jobs:
     name: Vulnerability scan
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@master
+    - name: Checkout repository
+      uses: actions/checkout@master
+      with:
+        fetch-depth: 0
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
@@ -70,7 +69,9 @@ jobs:
         shell: bash
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@master
+      with:
+        fetch-depth: 0
     - name: Login to Azure Container Registry
       uses: azure/docker-login@v2
       with:
@@ -88,7 +89,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@master
+        with:
+          fetch-depth: 0
       - name: Azure Login
         uses: Azure/login@v2.1.0
         with:
