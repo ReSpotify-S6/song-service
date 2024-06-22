@@ -40,6 +40,8 @@ builder.Services.AddSingleton<IKeycloakJwtHandler, KeycloakJwtHandler>();
 builder.Services.AddSingleton<IEventListener, EventListener>();
 builder.Services.AddHostedService<DeletedResourceListener>();
 
+builder.Services.AddHealthChecks();
+
 // Database
 var connectionString = new DbConnectionStringBuilder
 {
@@ -84,7 +86,8 @@ app.UseCors(corsPolicy);
 app.UseMiddleware<AuthMiddleware>();
 app.UseAuthorization();
 
-
 app.MapControllers();
+
+app.MapHealthChecks("/healthz");
 
 app.Run();
