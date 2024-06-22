@@ -2,8 +2,6 @@
 using System.Text.Json;
 using System.Text;
 using RabbitMQ.Client.Events;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
-using Microsoft.Extensions.Logging;
 
 namespace SongService.Messaging;
 
@@ -74,7 +72,7 @@ public class EventListener : IDisposable, IEventListener
 
     public void Dispose()
     {
-        GC.SuppressFinalize(this);
         _connection.Close();
+        GC.SuppressFinalize(this);
     }
 }
