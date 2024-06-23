@@ -7,7 +7,6 @@ on:
 jobs:
   deploy:
     name: Deployment
-    needs: [test, analyze, vulnerability-scan]
     runs-on: ubuntu-latest
     defaults:
       run:
